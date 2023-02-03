@@ -15,7 +15,7 @@ server.use(app.json());
     Should be resive a param called name to set this value as a container name
 */
 
-server.get('/create/:name', async function (req, res) {
+server.post('/create/:name', async function (req, res) {
     const { name } = req.params;
 
     try {
@@ -110,6 +110,31 @@ server.get('/get', async function (req, res) {
     //console.table(blobsItems)
     return res.status(200).json(blobsItems);
 })
+
+/*
+
+    FUNCTION TO DELETE A BLOB CONTAINER
+    This function should delete a container and all its content
+
+*/
+
+server.delete('/delete/:containerName', async function(req, res){
+    const { containerName } = req.params;
+
+    try {
+        const blobServiceClient = BlobServiceClient.fromConnectionString(
+            process.env.AZURE_STORAGE_CONNECTION_STRING
+        );
+
+        const containerClient = blobServiceClient.getContainerClient(containerName);
+        await containerClient.delete();
+        return res.status(200).json({ message: "Container was deleted successfully" })
+    }
+    catch (error) {
+        return res.status(500).json({ message: "INTERNAL SERVER ERROR" })
+    }
+})
+
 
 server.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`)
