@@ -66,13 +66,42 @@ server.post('/upload', async function (req, res) {
         const blobBlockClient = containerClient.getBlockBlobClient(`${fileName}.txt`);
 
         await blobBlockClient.upload(text, text.length);
-        return res.status(201).json({message:"File was uploaded successfully"});
+        return res.status(201).json({ message: "File was uploaded successfully" });
     }
     catch (error) {
         return res.status(500).json({ message: "INTERNAL SERVER ERROR" })
     }
 })
 
+/*
+    FUNCTION TO LIST ALL BLOBS INSIDE A CONTAINER
+*/
+
+server.get('/get', async function (req, res) {
+
+    // -> Upload Text First
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_STORAGE_CONNECTION_STRING
+    );
+
+    // -> Get container reference
+    const containerClient = blobServiceClient.getContainerClient("text-uploads-example");
+
+    let blobsItems = [];
+    let blobItem = {}
+    // -> Get Item by Item
+    for await (const blob of containerClient.listBlobsFlat()) {
+        const tempBlockBlobClient = containerClient.getBlockBlobClient(blob.name);
+        blobItem = {
+            name: blob.name,
+            thumbnail: tempBlockBlobClient.url
+        }
+        blobsItems = [...blobsItems, blobItem];
+        blobItem = {};
+    }
+    //console.table(blobsItems)
+    return res.status(200).json(blobsItems);
+})
 
 server.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`)
