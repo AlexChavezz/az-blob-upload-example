@@ -10,7 +10,6 @@ const { BlobServiceClient } = require('@azure/storage-blob');
 
 server.use(app.json());
 
-
 /* 
     FUNCTION USED TO CREATE A BLOB CONTAINER
     Should be resive a param called name to set this value as a container name
@@ -64,8 +63,15 @@ server.post('/upload', async function (req, res) {
 
         const containerClient = blobServiceClient.getContainerClient("text-uploads-example");
         const blobBlockClient = containerClient.getBlockBlobClient(`${fileName}.txt`);
-
         await blobBlockClient.upload(text, text.length);
+        
+        /*
+        Also we can obtain the url of the blob using the following code
+            const blobUrl = blobBlockClient.url;
+        and then return it to the client.
+            return res.status(201).json({ message: "File was uploaded successfully", blobUrl });
+        */
+
         return res.status(201).json({ message: "File was uploaded successfully" });
     }
     catch (error) {
@@ -75,6 +81,8 @@ server.post('/upload', async function (req, res) {
 
 /*
     FUNCTION TO LIST ALL BLOBS INSIDE A CONTAINER
+    Next function should return a list of all bobs inside a container
+    and has to return name and thumbnail url in an array structure.
 */
 
 server.get('/get', async function (req, res) {
