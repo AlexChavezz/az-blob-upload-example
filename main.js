@@ -146,11 +146,38 @@ server.delete('/delete/:containerName', async function (req, res) {
     We need to install the multer library, this library allows handling multipart/form-data, which is primarily used for uploading files.
     -> https://www.npmjs.com/package/multer
     -> npm install multer
-    
+
+    FRONT-END CODE
+
+    (() => {
+    const fileInput = document.querySelector('#file');
+    // fileInput.click();
+    fileInput.addEventListener('change', ({ target }) => {
+        // get file from input
+        const file = target.files[0];
+        // create a formdata instance
+        const formdata = new FormData();
+        // insert document in formdata intance
+        // formdata.append('id', '1212121212');
+        // formdata.append('name', 'image');
+        formdata.append('image', file);
+        // send image trough fetch request
+        console.log(typeof formdata)
+        fetch('http://localhost:8080/api/v1/uploadImage', {
+            method: 'POST',
+            body: formdata
+        })
+            .then(res => res.json())
+            .then((res)=>{
+                document.querySelector('#image').src = res.thumbnailUrl;
+            })
+            .catch(console.error)
+    })
+})()
+
 */
 
 const multer = require('multer');
-
 const
     inMemoryStorage = multer.memoryStorage(),
     uploadStrategy = multer({ storage: inMemoryStorage }).single('image');
