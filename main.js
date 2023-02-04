@@ -64,7 +64,7 @@ server.post('/upload', async function (req, res) {
         const containerClient = blobServiceClient.getContainerClient("text-uploads-example");
         const blobBlockClient = containerClient.getBlockBlobClient(`${fileName}.txt`);
         await blobBlockClient.upload(text, text.length);
-        
+
         /*
         Also we can obtain the url of the blob using the following code
             const blobUrl = blobBlockClient.url;
@@ -118,7 +118,7 @@ server.get('/get', async function (req, res) {
 
 */
 
-server.delete('/delete/:containerName', async function(req, res){
+server.delete('/delete/:containerName', async function (req, res) {
     const { containerName } = req.params;
 
     try {
@@ -135,6 +135,44 @@ server.delete('/delete/:containerName', async function(req, res){
     }
 })
 
+
+/*
+    UPLAOAD IMAGES TO A AZURE BLOB CONTAINER
+    The next code can be used to upload images to a blob container.
+    To make this idea works, there's a lot of ways to do it.
+    Imagine that you have a front-end application and you want to upload images to a blob container in azure also you have nodejs application server (express server).
+    So you need to think about how to send a image from your client to your server.
+
+    We need to install the multer library, this library allows handling multipart/form-data, which is primarily used for uploading files.
+    -> https://www.npmjs.com/package/multer
+    -> npm install multer
+    
+*/
+
+const multer = require('multer');
+
+const
+    inMemoryStorage = multer.memoryStorage(),
+    uploadStrategy = multer({ storage: inMemoryStorage }).single('image');
+
+server.post('/upload-image', uploadStrategy,  async function (req, res) {
+    const file = req.file;
+    try {
+        const blobServiceClient = BlobServiceClient.fromConnectionString(
+            process.env.AZURE_STORAGE_CONNECTION_STRING
+        );
+
+        const containerClient = blobServiceClient.getContainerClient("blog-images");
+        // -> Set file name. This must be unique.
+        const blobBlockClient = containerClient.getBlockBlobClient(file.originalname);
+        await blobBlockClient.upload(req.file.buffer, req.file.buffer.length);
+        return res.status(201).json({ message: "File was uploaded successfully", thumbnailUrl: blobBlockClient.url });
+    }
+    catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: "INTERNAL SERVER ERROR" })
+    }
+})
 
 server.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`)
